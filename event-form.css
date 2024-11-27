@@ -1,0 +1,439 @@
+/* Event Form Styling */
+.create-event {
+    background: linear-gradient(135deg, #1a1f25 0%, #2c3e50 100%);
+    padding: 40px 0;
+    min-height: 100vh;
+}
+
+.event-form-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.event-form-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.event-form-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.header-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #00b4db, #0083b0);
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-icon i {
+    font-size: 35px;
+    color: white;
+}
+
+.event-form-header h2 {
+    color: #2c3e50;
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.event-form-header p {
+    color: #7f8c8d;
+    font-size: 16px;
+}
+
+/* Form Steps Styling */
+.form-step {
+    display: none;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.form-step.active {
+    display: block;
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.step-number {
+    width: 35px;
+    height: 35px;
+    background: linear-gradient(135deg, #00b4db, #0083b0);
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-weight: bold;
+}
+
+/* Input Fields Styling */
+.input-field {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.input-field input,
+.input-field select,
+.input-field textarea {
+    width: 100%;
+    padding: 12px 45px 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.input-field label {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7f8c8d;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.input-field input:focus,
+.input-field select:focus,
+.input-field textarea:focus {
+    border-color: #00b4db;
+    box-shadow: 0 0 10px rgba(0, 180, 219, 0.1);
+}
+
+.input-field input:focus + label,
+.input-field input:valid + label {
+    top: -10px;
+    left: 10px;
+    font-size: 12px;
+    background: white;
+    padding: 0 5px;
+    color: #00b4db;
+}
+
+.input-field i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7f8c8d;
+}
+
+/* Checkbox Section Styling */
+.checkbox-section {
+    margin-bottom: 30px;
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.custom-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.custom-checkbox:hover {
+    border-color: #00b4db;
+    background: rgba(0, 180, 219, 0.05);
+}
+
+.checkbox-icon {
+    width: 30px;
+    height: 30px;
+    background: #f5f6fa;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+/* File Upload Styling */
+.file-upload-section {
+    margin-bottom: 30px;
+}
+
+.file-upload-section input[type="file"] {
+    display: none;
+}
+
+.file-upload-section label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border: 2px dashed #00b4db;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.file-upload-section label:hover {
+    background: rgba(0, 180, 219, 0.05);
+}
+
+.file-upload-section i {
+    font-size: 24px;
+    margin-right: 10px;
+    color: #00b4db;
+}
+
+/* Navigation Buttons */
+.form-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+}
+
+.prev-btn,
+.next-btn,
+.submit-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.prev-btn {
+    background: #f5f6fa;
+    color: #2c3e50;
+}
+
+.next-btn,
+.submit-btn {
+    background: linear-gradient(135deg, #00b4db, #0083b0);
+    color: white;
+}
+
+.prev-btn:hover {
+    background: #e0e0e0;
+}
+
+.next-btn:hover,
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 180, 219, 0.3);
+}
+
+/* Progress Bar */
+.form-progress {
+    margin-top: 30px;
+}
+
+.progress-bar {
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.progress {
+    height: 100%;
+    background: linear-gradient(135deg, #00b4db, #0083b0);
+    transition: width 0.3s ease;
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+}
+
+.step {
+    width: 12px;
+    height: 12px;
+    background: #e0e0e0;
+    border-radius: 50%;
+    position: relative;
+}
+
+.step.active {
+    background: #00b4db;
+}
+
+.step.active::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background: rgba(0, 180, 219, 0.2);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .event-form-wrapper {
+        padding: 10px;
+    }
+    
+    .event-form-container {
+        padding: 20px;
+    }
+    
+    .checkbox-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+}
+
+/* Image Preview Styling */
+.image-preview {
+    margin-top: 15px;
+    max-width: 100%;
+    min-height: 100px;
+    border: 2px dashed #e0e0e0;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+/* Input Row Styling */
+.input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+/* Fix for select element */
+.input-field select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    background: white;
+}
+
+.input-field select + label {
+    background: white;
+    padding: 0 5px;
+    top: -10px;
+    left: 10px;
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+/* Fix for textarea */
+.input-field textarea {
+    min-height: 120px;
+    resize: vertical;
+    padding-top: 15px;
+}
+
+.input-field textarea + label {
+    top: 15px;
+}
+
+.input-field textarea:focus + label,
+.input-field textarea:valid + label {
+    top: -10px;
+    background: white;
+    padding: 0 5px;
+}
+
+/* File Upload Field Styling */
+.file-upload-field {
+    position: relative;
+    width: 100%;
+}
+
+.file-upload-field input[type="file"] {
+    display: none;
+}
+
+.file-upload-field label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    color: #7f8c8d;
+}
+
+.file-upload-field label:hover {
+    border-color: #00b4db;
+    color: #00b4db;
+}
+
+.file-upload-field label i {
+    font-size: 18px;
+}
+
+.file-upload-field .image-preview {
+    margin-top: 10px;
+    max-height: 150px;
+    border: none;
+    padding: 0;
+}
+
+.file-upload-field .image-preview img {
+    max-height: 150px;
+    border-radius: 6px;
+} 

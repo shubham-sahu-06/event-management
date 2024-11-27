@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Registration</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-database-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #71b7e6, #9b59b6);
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            padding: 25px 30px;
+            border-radius: 25px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .event-details {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(113, 183, 230, 0.1);
+            border-radius: 15px;
+        }
+
+        .event-details h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .event-details p {
+            color: #666;
+            margin: 5px 0;
+            font-size: 16px;
+        }
+
+        .form-title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: #9b59b6;
+            box-shadow: 0 0 10px rgba(155, 89, 182, 0.2);
+        }
+
+        .checkbox-group {
+            margin: 25px 0;
+        }
+
+        .checkbox-title {
+            color: #2c3e50;
+            font-weight: 500;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .checkbox-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-label:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #71b7e6, #9b59b6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(-135deg, #71b7e6, #9b59b6);
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            z-index: 1000;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 584px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .form-title {
+                font-size: 24px;
+            }
+            
+            .checkbox-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="event-details">
+            <h3 id="eventNameDisplay">Event Name</h3>
+            <p id="eventDateDisplay">Event Date</p>
+            <p id="eventVenueDisplay">Event Venue</p>
+        </div>
+
+        <form id="registrationForm">
+            <h2 class="form-title">Registration Form</h2>
+            
+            <div class="input-group">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" name="fullName" required>
+            </div>
+
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="input-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" 
+                       title="Please enter a valid 10-digit phone number" required>
+            </div>
+
+            <div class="input-group">
+                <label for="branch">Branch</label>
+                <select id="branch" name="branch" required>
+                    <option value="">Select Branch</option>
+                    <option value="CSE">Computer Science</option>
+                    <option value="IT">Information Technology</option>
+                    <option value="ECE">Electronics & Communication</option>
+                    <option value="EE">Electrical Engineering</option>
+                    <option value="ME">Mechanical Engineering</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="rollNo">Roll Number</label>
+                <input type="text" id="rollNo" name="rollNo" required>
+            </div>
+
+            <div class="input-group">
+                <label for="semester">Semester</label>
+                <select id="semester" name="semester" required>
+                    <option value="">Select Semester</option>
+                    <option value="1">1st Semester</option>
+                    <option value="2">2nd Semester</option>
+                    <option value="3">3rd Semester</option>
+                    <option value="4">4th Semester</option>
+                    <option value="5">5th Semester</option>
+                    <option value="6">6th Semester</option>
+                    <option value="7">7th Semester</option>
+                    <option value="8">8th Semester</option>
+                </select>
+            </div>
+
+            <div class="checkbox-group">
+                <div class="checkbox-title">Interested in Performing?</div>
+                <div class="checkbox-container">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="performances" value="dance"> Dance
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="performances" value="singing"> Singing
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="performances" value="speech"> Speech
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="performances" value="skit"> Skit
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">Register for Event</button>
+        </form>
+    </div>
+
+    <div class="success-message" id="successMessage">
+        Registration Successful!
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('R1 page loaded'); // Debug log
+            
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventId = urlParams.get('eventId');
+            const eventName = urlParams.get('eventName');
+            
+            console.log('URL Parameters:', { eventId, eventName }); // Debug log
+            
+            // Update event details
+            if (eventName) {
+                document.getElementById('eventNameDisplay').textContent = decodeURIComponent(eventName);
+            }
+            
+            // Get event details from Firebase
+            if (eventId) {
+                firebase.database().ref('upcoming_events/' + eventId).once('value')
+                    .then((snapshot) => {
+                        const eventData = snapshot.val();
+                        console.log('Event data:', eventData); // Debug log
+                        
+                        if (eventData) {
+                            document.getElementById('eventDateDisplay').textContent = 
+                                `Date: ${eventData.eventDate || 'TBA'}`;
+                            document.getElementById('eventVenueDisplay').textContent = 
+                                `Venue: ${eventData.eventVenue || 'TBA'}`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching event details:', error);
+                    });
+            }
+        });
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCoNxIs855O9WkiLOJkXTf4Kg45EK-Cocs",
+            authDomain: "vetrivel-c8711.firebaseapp.com",
+            databaseURL: "https://vetrivel-c8711-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "vetrivel-c8711",
+            storageBucket: "vetrivel-c8711.appspot.com",
+            messagingSenderId: "123328633210",
+            appId: "1:123328633210:web:797094ecd85111b2011ec3"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Form submission
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get the submit button
+            const submitBtn = document.querySelector('.submit-btn');
+            submitBtn.textContent = 'Registering...';
+            submitBtn.disabled = true;
+
+            // Get event details from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventId = urlParams.get('eventId');
+            const eventName = urlParams.get('eventName');
+
+            // Check if we have event details
+            if (!eventId || !eventName) {
+                alert('Event details not found');
+                submitBtn.textContent = 'Register for Event';
+                submitBtn.disabled = false;
+                return;
+            }
+
+            // Get form data
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                branch: document.getElementById('branch').value,
+                rollNo: document.getElementById('rollNo').value,
+                semester: document.getElementById('semester').value,
+                eventId: eventId,
+                eventName: decodeURIComponent(eventName),
+                registrationDate: new Date().toISOString()
+            };
+
+            // Get selected performances
+            const performances = [];
+            document.querySelectorAll('input[name="performances"]:checked').forEach(checkbox => {
+                performances.push(checkbox.value);
+            });
+            formData.performances = performances;
+
+            console.log('Submitting registration:', formData); // Debug log
+
+            // Save to Firebase
+            firebase.database().ref('event_registrations/' + eventId).push(formData)
+                .then(() => {
+                    console.log('Registration saved successfully');
+                    // Show success message
+                    document.getElementById('successMessage').style.display = 'block';
+                    
+                    // Reset form
+                    this.reset();
+                    
+                    // Redirect after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                })
+                .catch((error) => {
+                    console.error('Registration error:', error);
+                    alert('Error submitting registration: ' + error.message);
+                })
+                .finally(() => {
+                    // Reset button state
+                    submitBtn.textContent = 'Register for Event';
+                    submitBtn.disabled = false;
+                });
+        });
+    </script>
+
+    <script>
+        // Initialize Firebase (use the same config as index.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCoNxIs855O9WkiLOJkXTf4Kg45EK-Cocs",
+            authDomain: "vetrivel-c8711.firebaseapp.com",
+            databaseURL: "https://vetrivel-c8711-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "vetrivel-c8711",
+            storageBucket: "vetrivel-c8711.appspot.com",
+            messagingSenderId: "123328633210",
+            appId: "1:123328633210:web:797094ecd85111b2011ec3"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Get form element
+        const registrationForm = document.getElementById('registrationForm');
+
+        // Add submit event listener to form
+        registrationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get the submit button
+            const submitBtn = document.querySelector('.submit-btn');
+            submitBtn.textContent = 'Registering...';
+            submitBtn.disabled = true;
+
+            // Get event details from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventId = urlParams.get('eventId');
+            const eventName = urlParams.get('eventName');
+
+            // Check if we have event details
+            if (!eventId || !eventName) {
+                alert('Event details not found');
+                submitBtn.textContent = 'Register for Event';
+                submitBtn.disabled = false;
+                return;
+            }
+
+            // Get form data
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                branch: document.getElementById('branch').value,
+                rollNo: document.getElementById('rollNo').value,
+                semester: document.getElementById('semester').value,
+                eventId: eventId,
+                eventName: decodeURIComponent(eventName),
+                registrationDate: new Date().toISOString()
+            };
+
+            // Get selected performances
+            const performances = [];
+            document.querySelectorAll('input[name="performances"]:checked').forEach(checkbox => {
+                performances.push(checkbox.value);
+            });
+            formData.performances = performances;
+
+            console.log('Submitting registration:', formData); // Debug log
+
+            // Save to Firebase
+            firebase.database().ref('event_registrations/' + eventId).push(formData)
+                .then(() => {
+                    console.log('Registration saved successfully');
+                    // Show success message
+                    document.getElementById('successMessage').style.display = 'block';
+                    
+                    // Reset form
+                    registrationForm.reset();
+                    
+                    // Redirect after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                })
+                .catch((error) => {
+                    console.error('Registration error:', error);
+                    alert('Error submitting registration: ' + error.message);
+                })
+                .finally(() => {
+                    // Reset button state
+                    submitBtn.textContent = 'Register for Event';
+                    submitBtn.disabled = false;
+                });
+        });
+
+        // Add this to display event details when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventName = urlParams.get('eventName');
+            const eventId = urlParams.get('eventId');
+
+            console.log('Event details:', { eventId, eventName }); // Debug log
+
+            if (eventName) {
+                document.getElementById('eventNameDisplay').textContent = decodeURIComponent(eventName);
+            }
+
+            if (eventId) {
+                // Get event details from Firebase
+                firebase.database().ref('upcoming_events/' + eventId).once('value')
+                    .then((snapshot) => {
+                        const eventData = snapshot.val();
+                        console.log('Event data:', eventData); // Debug log
+                        
+                        if (eventData) {
+                            document.getElementById('eventDateDisplay').textContent = 
+                                `Event Date: ${eventData.eventDate || 'TBA'}`;
+                            document.getElementById('eventVenueDisplay').textContent = 
+                                `Event Venue: ${eventData.eventVenue || 'TBA'}`;
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error fetching event details:', error);
+                    });
+            }
+        });
+    </script>
+</body>
+</html>

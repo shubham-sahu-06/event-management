@@ -1,0 +1,2639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZENITH - Event Management</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="event-form.css">
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-storage-compat.js"></script>
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- Add these right after your other script tags in the head section -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        .register-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .register-btn:hover {
+            background-color: #45a049;
+        }
+
+        .event {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+
+        /* Add these styles to your existing style section */
+        .close {
+            position: absolute;
+            right: 25px;
+            top: 10px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: relative;
+            background: #fff;
+            margin: 5% auto;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: translateY(-20px);
+            opacity: 0;
+            animation: modalSlideIn 0.3s ease forwards;
+        }
+
+        @keyframes modalSlideIn {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close-btn {
+            position: absolute;
+            right: -12px;
+            top: -12px;
+            width: 30px;
+            height: 30px;
+            background: #ff4444;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: #ff0000;
+            transform: scale(1.1);
+        }
+
+        .auth-form {
+            padding: 30px;
+        }
+
+        .auth-form h2 {
+            margin: 0 0 20px;
+            color: #333;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 35px 10px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group label {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: #999;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-group i {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .form-group input:focus,
+        .form-group input:valid {
+            border-color: #4CAF50;
+        }
+
+        .form-group input:focus + label,
+        .form-group input:valid + label {
+            top: -10px;
+            left: 5px;
+            font-size: 12px;
+            background: #fff;
+            padding: 0 5px;
+            color: #4CAF50;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .auth-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .auth-links {
+            margin-top: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .auth-links a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .auth-links a:hover {
+            color: #45a049;
+            text-decoration: underline;
+        }
+
+        /* Add this to your existing styles */
+        .completed-event .register-btn {
+            display: none !important;
+        }
+
+        /* Add this specific style for completed events */
+        .completed-event .register-btn {
+            display: none !important;
+        }
+
+        /* Remove the previous style that was hiding all register buttons */
+        /* Remove or comment out this style:
+        [data-event-id="event-1"] .register-btn {
+            display: none !important;
+        } */
+
+        /* Add this to your existing styles */
+        .completed-event .register-btn {
+            display: none !important;
+        }
+
+        /* Also add this to ensure the button stays hidden */
+        .completed-event button,
+        .completed-event .btn,
+        .completed-event [class*="register"] {
+            display: none !important;
+        }
+
+        #upcomingEventForm .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        #upcomingEventForm .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+        }
+
+        #upcomingEventForm .form-group select:focus {
+            border-color: #4CAF50;
+        }
+
+        /* Style for the upcoming events section */
+        .upcoming-events {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .upcoming-event-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .upcoming-event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #ff4444;
+        }
+
+        .auth-form {
+            padding: 20px;
+        }
+
+        .auth-form h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .form-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 18px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 45px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            padding-top: 40px;
+        }
+
+        .form-group label {
+            position: absolute;
+            left: 45px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .form-group textarea + label {
+            top: 30px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        .form-group input:focus + label,
+        .form-group input:valid + label,
+        .form-group textarea:focus + label,
+        .form-group textarea:valid + label {
+            top: -10px;
+            left: 15px;
+            font-size: 12px;
+            color: #4CAF50;
+            background: #fff;
+            padding: 0 5px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .submit-btn i {
+            font-size: 18px;
+        }
+
+        /* Add these styles to your existing CSS */
+        .event-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .event {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .event:hover {
+            transform: translateY(-5px);
+        }
+
+        .event h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .event p {
+            margin: 10px 0;
+            color: #666;
+        }
+
+        .event p i {
+            margin-right: 8px;
+            color: #4CAF50;
+        }
+
+        .event .register-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .event .register-btn:hover {
+            background: #45a049;
+        }
+
+        #dashboard {
+            padding: 40px 0;
+            background: #f5f5f5;
+        }
+
+        .dashboard-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .event {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .event:hover {
+            transform: translateY(-5px);
+        }
+
+        .event h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .event-details {
+            margin-bottom: 20px;
+        }
+
+        .event-details p {
+            margin: 10px 0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .event-details i {
+            color: #4CAF50;
+            width: 20px;
+            text-align: center;
+        }
+
+        .register-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .register-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .register-btn i {
+            font-size: 18px;
+        }
+
+        /* Add these styles to your existing CSS */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .event-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .event-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .event-details p {
+            margin: 8px 0;
+            color: #666;
+        }
+
+        .event-details i {
+            margin-right: 8px;
+            color: #4CAF50;
+        }
+
+        .register-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .register-btn:hover {
+            background: #45a049;
+        }
+
+        .register-btn i {
+            font-size: 16px;
+        }
+
+        #upcoming-events {
+            padding: 40px 0;
+            background: #f5f5f5;
+        }
+
+        #upcoming-events h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .event-image {
+            margin-top: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .event-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 8px;
+        }
+
+        .event-card.error {
+            background: #fee;
+            color: #c00;
+            border: 1px solid #fcc;
+        }
+
+        #upcoming-events {
+            padding: 40px 0;
+            background: #f5f5f5;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .section {
+            display: block !important; /* Force section to be visible */
+        }
+
+        .events-grid {
+            min-height: 100px;
+        }
+
+        .event-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .event-card.error {
+            background: #fee;
+            color: #c00;
+        }
+
+        /* Add registration modal styles */
+        .registration-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .registration-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 400px;
+            margin: 50px auto;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .registration-form h3 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .registration-form .form-group {
+            margin-bottom: 15px;
+        }
+
+        .registration-form label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .registration-form input,
+        .registration-form select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .registration-form button {
+            width: 100%;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .registration-form button:hover {
+            background: #45a049;
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        /* Add these styles to your existing style section */
+        .nav-register-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-register-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .nav-register-btn i {
+            font-size: 14px;
+        }
+
+        /* Add or update these styles */
+        .completed-event .register-btn,
+        .event.completed-event button,
+        .completed-event [class*="register"] {
+            display: none !important;
+        }
+
+        .event.completed-event {
+            padding-bottom: 15px; /* Reduce padding since button is removed */
+        }
+
+        /* Add these styles for the event cards */
+        .event-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .event-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .event-details p {
+            margin: 10px 0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .event-details i {
+            color: #4CAF50;
+            width: 20px;
+            text-align: center;
+        }
+
+        .register-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .register-btn:hover {
+            background: #45a049;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .editor-only {
+            display: none !important;
+        }
+
+        /* Only show for editor */
+        body.is-editor .editor-only {
+            display: block !important;
+        }
+
+        /* Add this style */
+        #createEvent {
+            transition: display 0.3s ease;
+        }
+
+        /* Add these styles to your existing style section */
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <div class="container">
+            <h1>ZENITH</h1>
+            <nav class="navigation">
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li class="auth-required" style="display: none;"><a href="#events">Events</a></li>
+                    <li class="auth-required" style="display: none;"><a href="#contact">Contact</a></li>
+                    <li class="auth-required" style="display: none;">
+                        <a href="registrations.html">Registrations</a>
+                    </li>
+                    <li class="auth-required" style="display: none;">
+                        <a href="upcoming-events.html" class="add-event-btn">
+                            <i class="fas fa-plus-circle"></i> Add Event
+                        </a>
+                    </li>
+                    <li>
+                        <button id="loginBtn">Login/Sign-up</button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Login/Sign-up Modal -->
+    <div id="loginModal" class="modal">
+        <!-- Login Form -->
+        <div class="modal-content" id="loginForm">
+            <div class="close-btn">&times;</div>
+            <div class="auth-form">
+                <h2>Login</h2>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <input type="email" id="email" required>
+                        <label>Email</label>
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="password" required>
+                        <label>Password</label>
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <button type="submit" class="auth-btn">
+                        <span>Login</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+                <div class="auth-links">
+                    <a href="#" id="showRegister">Create Account</a>
+                    <a href="#" id="forgotPassword">Forgot Password?</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div class="modal-content" id="registerForm" style="display:none;">
+            <div class="close-btn">&times;</div>
+            <div class="auth-form">
+                <h2>Create Account</h2>
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <input type="text" id="fullName" required>
+                        <label>Full Name</label>
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="registerEmail" required>
+                        <label>Email</label>
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="registerPassword" required>
+                        <label>Password</label>
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" id="phone" required>
+                        <label>Phone Number</label>
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <button type="submit" class="auth-btn">
+                        <span>Sign Up</span>
+                        <i class="fas fa-user-plus"></i>
+                    </button>
+                </form>
+                <div class="auth-links">
+                    <a href="#" id="showLogin">Already have an account? Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Reset Password</h2>
+            <form id="forgotPasswordForm">
+                <div class="inputbox">
+                    <label for="resetEmail">Email</label>
+                    <input type="email" id="resetEmail" required>
+                </div>
+                <div class="submit">
+                    <button type="submit">Send Reset Link</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <h2 id="welcomeMessage">Welcome to ZENITH</h2>
+            <p id="subMessage">Your gateway to managing and attending top events</p>
+        </div>
+    </section>
+
+<!-- Updated Dashboard Section -->
+<section id="dashboard" class="dashboard auth-required" style="display: none;">
+    <div class="container">
+        <h2>Welcome, <span id="studentName">Student</span></h2>
+        <div class="dashboard-container">
+            <section id="events" class="dashboard-section">
+                <h2>Upcoming Events</h2>
+                <div id="upcomingEventsList" class="event-list">
+                    <!-- Events will be loaded here dynamically -->
+                </div>
+            </section>
+        </div>
+    </div>
+</section>
+
+    <!-- Hero Section के बाद औाले upcoming events section को इस तरह अपडेट करें -->
+   
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2>About ZENITH</h2>
+            <p>ZENITH is your one-stop solution for organizing and attending top-tier events. Our platform connects event organizers with enthusiastic attendees, ensuring a seamless experience from registration to attendance.</p>
+        </div>
+    </section>
+
+    
+
+    <!-- Contact Section -->
+     
+            <!-- Add contact form here -->
+        </div>
+    </section>
+
+    <!-- Create Event Section -->
+    <section id="createEvent" class="create-event auth-required" style="display: none;">
+        <div class="event-form-wrapper">
+            <div class="event-form-container">
+                <div class="event-form-header">
+                    <div class="header-icon">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <h2>Create New Event</h2>
+                    <p>Fill in the details to create an amazing event</p>
+                </div>
+
+                <form id="createEventForm">
+                    <div class="form-step active" data-step="1">
+                        <div class="step-header">
+                            <span class="step-number">1</span>
+                            <h3>Basic Details</h3>
+                        </div>
+                        
+                        <div class="input-field">
+                            <input type="text" id="eventName" name="eventName" required>
+                            <label for="eventName">Event Name</label>
+                            <i class="fas fa-signature"></i>
+                        </div>
+
+                        <div class="input-row">
+                            <div class="input-field">
+                                <input type="date" id="eventDate" name="eventDate" required>
+                                <label for="eventDate">Event Date</label>
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <div class="file-upload-field">
+                                <input type="file" id="eventPhoto" name="eventPhoto" accept="image/*" required>
+                                <label for="eventPhoto">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <span>Choose Photo</span>
+                                </label>
+                                <div id="imagePreview" class="image-preview"></div>
+                            </div>
+                        </div>
+
+                        <div class="input-field">
+                            <input type="text" id="eventVenue" name="eventVenue" required>
+                            <label for="eventVenue">Event Venue</label>
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+
+                        <div class="form-navigation">
+                            <button type="button" class="next-btn" onclick="nextStep(1)">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-step" data-step="2">
+                        <div class="step-header">
+                            <span class="step-number">2</span>
+                            <h3>Event Details</h3>
+                        </div>
+
+                        <div class="input-field">
+                            <select id="eventType" name="eventType" required>
+                                <option value="" selected disabled>Select Event Type</option>
+                                <option value="cultural">Cultural Event</option>
+                                <option value="technical">Technical Event</option>
+                                <option value="sports">Sports Event</option>
+                                <option value="academic">Academic Event</option>
+                            </select>
+                            <label for="eventType">Event Type</label>
+                            <i class="fas fa-tag"></i>
+                        </div>
+
+                        <div class="input-field">
+                            <input type="text" id="guestOfHonor" name="guestOfHonor">
+                            <label for="guestOfHonor">Guest of Honor (Optional)</label>
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+
+                        <div class="form-navigation">
+                            <button type="button" class="prev-btn" onclick="prevStep(2)">
+                                <i class="fas fa-arrow-left"></i> Previous
+                            </button>
+                            <button type="button" class="next-btn" onclick="nextStep(2)">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-step" data-step="3">
+                        <div class="step-header">
+                            <span class="step-number">3</span>
+                            <h3>Performances & Media</h3>
+                        </div>
+
+                        <div class="checkbox-section">
+                            <h4>Select Performances</h4>
+                            <div class="checkbox-grid">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" name="performances" value="dance">
+                                    <span class="checkbox-icon"><i class="fas fa-music"></i></span>
+                                    <span>Dance</span>
+                                </label>
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" name="performances" value="singing">
+                                    <span class="checkbox-icon"><i class="fas fa-microphone"></i></span>
+                                    <span>Singing</span>
+                                </label>
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" name="performances" value="speech">
+                                    <span class="checkbox-icon"><i class="fas fa-comment"></i></span>
+                                    <span>Speech</span>
+                                </label>
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" name="performances" value="skit">
+                                    <span class="checkbox-icon"><i class="fas fa-theater-masks"></i></span>
+                                    <span>Skit</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-navigation">
+                            <button type="button" class="prev-btn" onclick="prevStep(3)">
+                                <i class="fas fa-arrow-left"></i> Previous
+                            </button>
+                            <button type="button" class="next-btn" onclick="nextStep(3)">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-step" data-step="4">
+                        <div class="step-header">
+                            <span class="step-number">4</span>
+                            <h3>Description & Submit</h3>
+                        </div>
+
+                        <div class="input-field">
+                            <textarea id="eventDescription" name="eventDescription" rows="4" required></textarea>
+                            <label for="eventDescription">Event Description</label>
+                            <i class="fas fa-align-left"></i>
+                        </div>
+
+                        <div class="form-navigation">
+                            <button type="button" class="prev-btn" onclick="prevStep(4)">
+                                <i class="fas fa-arrow-left"></i> Previous
+                            </button>
+                            <button type="submit" class="submit-btn">
+                                <span>Create Event</span>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="form-progress">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 25%"></div>
+                    </div>
+                    <div class="progress-steps">
+                        <span class="step active" data-step="1"></span>
+                        <span class="step" data-step="2"></span>
+                        <span class="step" data-step="3"></span>
+                        <span class="step" data-step="4"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Events Display Section -->
+    <section id="eventsDisplay" class="events-display auth-required" style="display: none;">
+        <div class="container">
+            <h2>Completed Events</h2>
+            <div id="eventsList" class="events-list">
+                <!-- Remove the register button from completed event ->
+                <div class="event completed-event">
+                    <h3>EDM Night</h3>
+                    <p>Date: 20224-01-03</p>
+                    <p>Location: Auditorium</p>
+                    <p>Guest of Honor: shubham sahu</p>
+                    <p>Description: dgndghh</p>
+                    <p>Performances: speech</p>
+                    <!-- Register button removed -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Add this after the Events Display Section -->
+    <section id="dashboardContent" class="dashboard-content" style="display: none;">
+        <!-- Dashboard content will be loaded here -->
+    </section>
+
+    <!-- Footer Section -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 ZENITH Event Management. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCoNxIs855O9WkiLOJkXTf4Kg45EK-Cocs",
+            authDomain: "vetrivel-c8711.firebaseapp.com",
+            databaseURL: "https://vetrivel-c8711-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "vetrivel-c8711",
+            storageBucket: "vetrivel-c8711.appspot.com", // Update this line
+            messagingSenderId: "123328633210",
+            appId: "1:123328633210:web:797094ecd85111b2011ec3"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Test the connection
+        const dbRef = firebase.database().ref('.info/connected');
+        dbRef.on('value', (snap) => {
+            console.log('Firebase connection state:', snap.val());
+        });
+
+        // Get references to auth and database
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const storage = firebase.storage();
+
+        // Register functionality
+        document.getElementById("registerFormElement").addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById("registerEmail").value;
+            const password = document.getElementById("registerPassword").value;
+            const fullName = document.getElementById("fullName").value;
+            const phone = document.getElementById("phone").value;
+
+            // Validate password length
+            if (password.length < 6) {
+                alert("Password must be at least 6 characters long");
+                return;
+            }
+
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.innerHTML = 'Creating Account...';
+
+            // Create user account
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    console.log("User created successfully");
+                    const user = userCredential.user;
+                    
+                    // Save additional user data
+                    return database.ref('users/' + user.uid).set({
+                        fullName: fullName,
+                        email: email,
+                        phoneNumber: phone,
+                        createdAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+                })
+                .then(() => {
+                    console.log("User data saved successfully");
+                    alert("Registration successful! You can now login.");
+                    
+                    // Reset form and close modal
+                    this.reset();
+                    document.getElementById("loginModal").style.display = "none";
+                    
+                    // Switch to login form
+                    document.getElementById('loginForm').style.display = 'block';
+                    document.getElementById('registerForm').style.display = 'none';
+                })
+                .catch((error) => {
+                    console.error("Registration error:", error);
+                    let message = "Registration failed: ";
+                    
+                    switch (error.code) {
+                        case 'auth/email-already-in-use':
+                            message += "This email is already registered. Please login instead.";
+                            break;
+                        case 'auth/invalid-email':
+                            message += "Please enter a valid email address.";
+                            break;
+                        case 'auth/weak-password':
+                            message += "Password should be at least 6 characters long.";
+                            break;
+                        default:
+                            message += error.message;
+                    }
+                    alert(message);
+                })
+                .finally(() => {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = 'Sign Up';
+                });
+        });
+
+        // Login functionality को update करें
+        document.getElementById("loginFormElement").addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.innerHTML = 'Logging in...';
+
+            console.log("Attempting login with:", email); // Debug log
+
+            // First try to login
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    console.log("Login successful");
+                    const user = userCredential.user;
+                    
+                    // Check if user data exists
+                    return database.ref('users/' + user.uid).once('value')
+                        .then((snapshot) => {
+                            let userData = snapshot.val();
+                            
+                            // If no user data found, create basic user data
+                            if (!userData) {
+                                userData = {
+                                    email: email,
+                                    fullName: email.split('@')[0], // Use email as temporary name
+                                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                                };
+                                
+                                // Save basic user data
+                                return database.ref('users/' + user.uid).set(userData)
+                                    .then(() => userData);
+                            }
+                            return userData;
+                        });
+                })
+                .then((userData) => {
+                    console.log("User data:", userData);
+
+                    // Set login status
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userEmail', email);
+                    
+                    // Update UI
+                    document.getElementById("loginModal").style.display = "none";
+                    document.getElementById("loginBtn").textContent = userData.fullName || email.split('@')[0];
+                    
+                    // Show auth-required elements
+                    document.querySelectorAll('.auth-required').forEach(el => {
+                        el.style.display = 'block';
+                    });
+
+                    // Update welcome message
+                    const welcomeMessage = document.getElementById('welcomeMessage');
+                    if (welcomeMessage) {
+                        welcomeMessage.textContent = `Welcome back, ${userData.fullName || 'User'}!`;
+                    }
+
+                    // Reset form
+                    this.reset();
+                    
+                    alert("Login successful!");
+                })
+                .catch((error) => {
+                    console.error("Login error:", error);
+                    let message = "";
+
+                    switch (error.code) {
+                        case 'auth/user-not-found':
+                            message = "No account found with this email. Please register first.";
+                            break;
+                        case 'auth/wrong-password':
+                        case 'auth/invalid-login-credentials':
+                            message = "Invalid email or password. Please check your credentials.";
+                            break;
+                        case 'auth/invalid-email':
+                            message = "Please enter a valid email address.";
+                            break;
+                        case 'auth/too-many-requests':
+                            message = "Too many failed attempts. Please try again later.";
+                            break;
+                        default:
+                            message = error.message;
+                    }
+                    alert(message);
+                })
+                .finally(() => {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = 'Login';
+                });
+        });
+
+        // Update loadDashboardData function to include events
+        function loadDashboardData(userData) {
+            document.getElementById('studentName').textContent = userData.fullName;
+            // You can add more dashboard data loading logic here
+            // For example, you could dynamically load events from the database
+            // loadEvents();
+        }
+
+        // You might want to add a function to load events dynamically
+        // function loadEvents() {
+        //     // Fetch events from database and populate the event-list
+        // }
+
+        // Forgot Password functionality
+        document.getElementById("forgotPassword").addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById("loginModal").style.display = "none";
+            document.getElementById("forgotPasswordModal").style.display = "block";
+        });
+
+        document.getElementById("forgotPasswordForm").addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById("resetEmail").value;
+            
+            firebase.auth().sendPasswordResetEmail(email)
+                .then(() => {
+                    alert("Password reset email sent. Please check your inbox.");
+                    document.getElementById("forgotPasswordModal").style.display = "none";
+                })
+                .catch((error) => {
+                    alert("Error sending password reset email: " + error.message);
+                });
+        });
+
+        // Close modal functionality
+        document.querySelectorAll('.close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', function() {
+                this.closest('.modal').style.display = 'none';
+            });
+        });
+
+        // Add this function right after your Firebase initialization
+        function updateUIOnAuth(user) {
+            console.log('Updating UI for user:', user?.uid);
+            
+            if (user) {
+                database.ref('users/' + user.uid).once('value')
+                    .then((snapshot) => {
+                        const userData = snapshot.val();
+                        
+                        // Check if user is editor
+                        const isEditor = user.email === 'Zenthuser207@gmail.com';
+                        console.log('Is Editor:', isEditor); // Debug log
+                        
+                        // Show/hide elements based on auth status
+                        document.querySelectorAll('.auth-required').forEach(el => {
+                            el.style.display = 'block';
+                        });
+                        
+                        // Show/hide create event section based on editor status
+                        const createEventSection = document.getElementById('createEvent');
+                        if (createEventSection) {
+                            console.log('Found create event section'); // Debug log
+                            if (isEditor) {
+                                createEventSection.style.removeProperty('display');
+                                createEventSection.style.display = 'block';
+                                console.log('Showing create event section'); // Debug log
+                            } else {
+                                createEventSection.style.display = 'none';
+                                console.log('Hiding create event section'); // Debug log
+                            }
+                        } else {
+                            console.log('Create event section not found'); // Debug log
+                        }
+
+                        // Show/hide "Add Event" button based on editor status
+                        const addEventBtn = document.querySelector('.add-event-btn');
+                        if (addEventBtn && addEventBtn.parentElement) {
+                            addEventBtn.parentElement.style.display = isEditor ? 'block' : 'none';
+                        }
+
+                        // Update welcome message
+                        const studentName = document.getElementById('studentName');
+                        if (studentName) {
+                            studentName.textContent = isEditor ? 'Zenith Admin' : (userData.fullName || 'Student');
+                        }
+                    });
+            } else {
+                // Hide auth-required elements when logged out
+                document.querySelectorAll('.auth-required').forEach(el => {
+                    el.style.display = 'none';
+                });
+                
+                // Hide create event section
+                const createEventSection = document.getElementById('createEvent');
+                if (createEventSection) {
+                    createEventSection.style.display = 'none';
+                }
+            }
+        }
+
+        // Add auth state observer
+        firebase.auth().onAuthStateChanged((user) => {
+            console.log('Auth state changed:', user ? 'logged in' : 'logged out');
+            updateUIOnAuth(user);
+        });
+
+        // Load upcoming events when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded');
+            loadUpcomingEvents();
+            testDatabaseConnection();
+        });
+
+        // Handle create event form submission
+        document.getElementById('createEventForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Form submitted'); // डीग लॉग
+            
+            // चेक रं कि यूजर लॉगिन है
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                alert('Please login first');
+                return;
+            }
+            
+            try {
+                // फर्म डेटा को प्राप्त करें
+                const eventData = {
+                    eventName: document.getElementById('eventName').value || '',
+                    eventDate: document.getElementById('eventDate').value || '',
+                    eventVenue: document.getElementById('eventVenue').value || '',
+                    eventType: document.getElementById('eventType').value || '',
+                    guestOfHonor: document.getElementById('guestOfHonor').value || '',
+                    eventDescription: document.getElementById('eventDescription').value || '',
+                    performances: [], // चेकबॉक्स से चुनी गई परफॉर्मेंस
+                    createdAt: Date.now(),
+                    createdBy: user.uid
+                };
+
+                console.log('Event Data:', eventData); // डीबग लॉग
+
+                // परफॉर्मेंस चेकबक��स से डेटा प्राप्त करें
+                const performanceCheckboxes = document.querySelectorAll('input[name="performances"]:checked');
+                performanceCheckboxes.forEach(checkbox => {
+                    eventData.performances.push(checkbox.value);
+                });
+
+                // फोटो अपलो कें
+                const eventPhoto = document.getElementById('eventPhoto').files[0];
+                
+                if (eventPhoto) {
+                    console.log('Uploading photo...'); // डीबग ॉग
+                    const storageRef = firebase.storage().ref();
+                    const photoRef = storageRef.child(`event_photos/${Date.now()}_${eventPhoto.name}`);
+                    
+                    photoRef.put(eventPhoto)
+                        .then(snapshot => {
+                            console.log('Photo uploaded successfully'); // डीब लॉग
+                            return snapshot.ref.getDownloadURL();
+                        })
+                        .then(downloadURL => {
+                            console.log('Got download URL:', downloadURL); // डीबग लॉग
+                            eventData.photoURL = downloadURL;
+                            
+                            // ेटाबेस ें सेव करें
+                            return saveEventToDatabase(eventData);
+                        })
+                        .catch(error => {
+                            console.error('Error in photo upload:', error);
+                            alert('फोटो अपलोड में रर: ' + error.message);
+                        });
+                } else {
+                    // बिना फोटो के सेव करें
+                    saveEventToDatabase(eventData);
+                }
+            } catch (error) {
+                console.error('Error in form submission:', error);
+                alert('फॉर्म सबमिशन में एरर: ' + error.message);
+            }
+        });
+
+        // डेटाबेस मे इवेंट सेव करने का अलग फंक्शन
+        function saveEventToDatabase(eventData) {
+            console.log('Attempting to save event:', eventData);
+            
+            // Save to upcoming_events instead of events
+            return firebase.database().ref('upcoming_events').push(eventData)
+                .then((ref) => {
+                    console.log('Event saved successfully with key:', ref.key);
+                    alert('Event added successfully!');
+                    document.getElementById('createEventForm').reset();
+                    loadUpcomingEvents(); // Reload the events list
+                })
+                .catch(error => {
+                    console.error('Error saving to database:', error);
+                    alert('Error saving event: ' + error.message);
+                });
+        }
+
+        // फॉर्म वैलिडेशन के लिए एक नया फंक्शन
+        function validateForm() {
+            const requiredFields = ['eventName', 'eventDate', 'eventVenue', 'eventType'];
+            let isValid = true;
+            
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('error');
+                } else {
+                    field.classList.remove('error');
+                }
+            });
+            
+            return isValid;
+        }
+
+        // Next button click handler
+        function nextStep(currentStep) {
+            if (currentStep === 1 && !validateForm()) {
+                alert('कृपया सभी आवश्यक फ़ील्ड भें');
+                return;
+            }
+            showStep(currentStep + 1);
+        }
+
+        // Previous button click handler
+        function prevStep(currentStep) {
+            showStep(currentStep - 1);
+        }
+
+        // स्टेप्स को दिखाने/छपाने के लए हेल्पर फंक्शन
+        function showStep(stepNumber) {
+            document.querySelectorAll('.form-step').forEach(step => {
+                step.classList.remove('active');
+            });
+            document.querySelector(`[data-step="${stepNumber}"]`).classList.add('active');
+            
+            // प्रोग्रेस बर अपडेट करें
+            const progress = ((stepNumber - 1) / 3) * 100;
+            document.querySelector('.progress').style.width = `${progress}%`;
+        }
+
+        // एक वैश्विक चर जड़ें जो बताएगा कि वेंट्स पहले से लोड हो चुके हैं या नीं
+        let eventsLoaded = false;
+
+        // इवेंट्स लोड करने औ प्रदर्शि कने का फ़ंक्शन
+        function loadEvents() {
+            if (eventsLoaded) {
+                console.log("Events already loaded, skipping...");
+                return;
+            }
+            
+            const eventsContainer = document.getElementById('eventsList');
+            if (!eventsContainer) {
+                console.error("Events container not found");
+                return;
+            }
+            
+            // Clear existing content
+            eventsContainer.innerHTML = '';
+            
+            database.ref('events').once('value')
+                .then((snapshot) => {
+                    if (!snapshot.exists()) {
+                        eventsContainer.innerHTML = '<p class="no-events">No completed events available at this time.</p>';
+                        return;
+                    }
+                    
+                    let eventCount = 0;
+                    snapshot.forEach((childSnapshot) => {
+                        const eventData = childSnapshot.val();
+                        if (eventData && typeof eventData === 'object') {
+                            const eventElement = createEventElement(eventData);
+                            // Remove register buttons from completed events
+                            const registerButtons = eventElement.querySelectorAll('.register-btn, button[class*="register"]');
+                            registerButtons.forEach(button => button.remove());
+                            eventsContainer.appendChild(eventElement);
+                            eventCount++;
+                        }
+                    });
+                    
+                    // Set the flag after successful loading
+                    eventsLoaded = true;
+                    
+                    // Final check to remove any remaining register buttons
+                    const allButtons = eventsContainer.querySelectorAll('a.btn, button, .register-btn');
+                    allButtons.forEach(button => button.remove());
+                    
+                    console.log(`Loaded ${eventCount} events successfully`);
+                })
+                .catch((error) => {
+                    console.error("Error loading events:", error);
+                    eventsContainer.innerHTML = '<p class="error-message">Error loading events. Please try again later.</p>';
+                });
+        }
+
+        // ऑथ स्टेट बदले प इवेटस लोड करें (केवल एक बार)
+        firebase.auth().onAuthStateChanged((user) => {
+            console.log("Auth state changed, user:", user);
+            updateUIOnAuth(user);
+            if (user && !eventsLoaded) {
+                loadEvents();
+            }
+        });
+
+        // सभी अन्य loadEvents() कॉल्स को हटा दें
+
+        // Function to create an event element for completed events
+        function createEventElement(eventData) {
+            const eventDiv = document.createElement('div');
+            eventDiv.className = 'event-box completed-event';
+            
+            const detailsDiv = document.createElement('div');
+            detailsDiv.className = 'event-details';
+            
+            // Add background image if available
+            if (eventData.photoURL) {
+                eventDiv.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${eventData.photoURL})`;
+            }
+            
+            // Create event content without any buttons or links
+            const content = `
+                <h3 class="event-title">${eventData.eventName || 'Unnamed Event'}</h3>
+                <div class="event-info">
+                    <p><strong>Date:</strong> ${eventData.eventDate || 'TBA'}</p>
+                    <p><strong>Venue:</strong> ${eventData.eventVenue || 'TBA'}</p>
+                    <p><strong>Guest of Honor:</strong> ${eventData.guestOfHonor || 'N/A'}</p>
+                    <p><strong>Description:</strong> ${eventData.eventDescription || 'No description available'}</p>
+                    <p><strong>Performances:</strong> ${Array.isArray(eventData.performances) ? eventData.performances.join(', ') : (eventData.performances || 'None')}</p>
+                </div>
+            `;
+            
+            detailsDiv.innerHTML = content;
+            eventDiv.appendChild(detailsDiv);
+            
+            // Remove ALL buttons and links
+            const allButtons = eventDiv.querySelectorAll('a, button, .btn, .register-btn, [href*="register"]');
+            allButtons.forEach(button => button.parentNode.removeChild(button));
+            
+            // Remove any elements with class containing 'register'
+            const registerElements = eventDiv.querySelectorAll('[class*="register"]');
+            registerElements.forEach(element => element.parentNode.removeChild(element));
+            
+            // Remove any elements with href containing 'register'
+            const registerLinks = eventDiv.querySelectorAll('[href*="register" i]');
+            registerLinks.forEach(link => link.parentNode.removeChild(link));
+            
+            return eventDiv;
+        }
+
+        // Load events when auth state changes
+        firebase.auth().onAuthStateChanged((user) => {
+            console.log("Auth state changed, user:", user); // Debug log
+            updateUIOnAuth(user);
+            if (user) {
+                database.ref('users/' + user.uid).once('value')
+                    .then((snapshot) => {
+                        const userData = snapshot.val();
+                        loadDashboardData(userData);
+                        loadEvents(); // Add this line to ensure events are loaded after authentication
+                    });
+            }
+        });
+
+        function setupEditors() {
+            const editors = {
+                "editor1@example.com": true,
+                "editor2@example.com": true
+            };
+
+            firebase.database().ref('editors').set(editors)
+                .then(() => console.log("Editors setup complete"))
+                .catch((error) => console.error("Error setting up editors:", error));
+        }
+
+        // Call this function once, perhaps when your app initializes
+        // setupEditors();
+
+        // Make sure to call updateUIOnAuth when the auth state changes
+        firebase.auth().onAuthStateChanged((user) => {
+            console.log("Auth state changed, user:", user); // Debug log
+            updateUIOnAuth(user);
+            if (user) {
+                loadEvents(); // Load events when user is authenticated
+            }
+        });
+
+        // Call loadEvents when the page loads (for testing purposes)
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM content loaded"); // Debug log
+            loadEvents();
+        });
+
+        // ुरक्षा नियम���ं को लागू रने क लिए क फ़ंक्शन जोड़ें
+        function applySecurityRules() {
+            const rules = {
+                "rules": {
+                    "users": {
+                        "$uid": {
+                            ".read": "$uid === auth.uid",
+                            ".write": "$uid === auth.uid"
+                        }
+                    },
+                    "events": {
+                        ".read": true,
+                        ".write": "auth != null"
+                    }
+                }
+            };
+
+            // नोट:  केवल एक उदाहरण है। वास्तविक अुप्रयोों में, नियम Firebase Console से सेट िए जाते हैं।
+            console.log("Security rules applied:", JSON.stringify(rules, null, 2));
+        }
+
+        // ऑथ स्टे बदलने प इवेंटस ोड करें (केवल एक बार)
+        firebase.auth().onAuthStateChanged((user) => {
+            console.log("Auth state changed, user:", user);
+            updateUIOnAuth(user);
+            applySecurityRules(); // सुरक्षा नियम लागू कर
+        });
+
+        // पेज लोड होने पर loadEvents को ॉल न करें
+        // document.addEventListener('DOMContentLoaded', loadEvents);
+
+        function showDashboard() {
+            const dashboardSection = document.getElementById('dashboard');
+            if (dashboardSection) {
+                dashboardSection.style.display = 'block';
+            } else {
+                console.error('Dashboard section not found');
+            }
+        }
+
+        // Add CSS to ensure no buttons are displayed
+        const style = document.createElement('style');
+        style.textContent = `
+            .completed-event .btn,
+            .completed-event button,
+            .completed-event .register-btn,
+            .completed-event [href*="register"],
+            .completed-event [class*="register"] {
+                display: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Add these functions to your existing script
+        function loadRegistrations() {
+            console.log('Loading registrations...');
+            
+            const registrationsData = document.getElementById('registrationsData');
+            const registrationsSection = document.getElementById('registrations');
+            
+            if (!registrationsData || !registrationsSection) {
+                console.error('Required elements not found');
+                return;
+            }
+
+            // Show loading message
+            registrationsData.innerHTML = '<tr><td colspan="5">Loading registrations...</td></tr>';
+            registrationsSection.style.display = 'block';
+
+            // Get registrations from event_registrations path
+            database.ref('event_registrations').once('value')
+                .then((snapshot) => {
+                    registrationsData.innerHTML = ''; // Clear loading message
+                    
+                    if (!snapshot.exists()) {
+                        registrationsData.innerHTML = '<tr><td colspan="5">No registrations found</td></tr>';
+                        return;
+                    }
+
+                    let registrationsFound = false;
+
+                    // Loop through each event registration
+                    snapshot.forEach((eventNode) => {
+                        const eventData = eventNode.val();
+                        
+                        // Check if we have registrations under this event
+                        if (eventData && typeof eventData === 'object') {
+                            Object.entries(eventData).forEach(([regId, data]) => {
+                                if (data && typeof data === 'object') {
+                                    registrationsFound = true;
+                                    console.log('Processing registration:', data);
+
+                                    // Create table row
+                                    const row = document.createElement('tr');
+                                    row.innerHTML = `
+                                        <td>${data.fullName || 'N/A'}</td>
+                                        <td>${data.email || 'N/A'}</td>
+                                        <td>${data.phone || 'N/A'}</td>
+                                        <td>${data.branch || 'N/A'}</td>
+                                        <td>${Array.isArray(data.performances) ? data.performances.join(', ') : 'N/A'}</td>
+                                    `;
+                                    registrationsData.appendChild(row);
+                                }
+                            });
+                        }
+                    });
+
+                    if (!registrationsFound) {
+                        registrationsData.innerHTML = '<tr><td colspan="5">No registrations found</td></tr>';
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error loading registrations:', error);
+                    registrationsData.innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+                });
+        }
+
+        function downloadAsExcel() {
+            const table = document.getElementById('registrationsTable');
+            const wb = XLSX.utils.table_to_book(table);
+            XLSX.writeFile(wb, 'registrations.xlsx');
+        }
+
+        function downloadAsPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const table = document.getElementById('registrationsTable');
+            
+            doc.autoTable({ html: table });
+            doc.save('registrations.pdf');
+        }
+
+        // Update the updateUIOnAuth function to include registration controls
+        function updateUIOnAuth(user) {
+            if (user) {
+                database.ref('users/' + user.uid).once('value')
+                    .then((snapshot) => {
+                        const userData = snapshot.val();
+                        const isEditor = userData && userData.isEditor === true;
+                        
+                        // Show/hide download buttons based on editor status
+                        document.getElementById('downloadButtons').style.display = 
+                            isEditor ? 'block' : 'none';
+                        
+                        // Show registration buttons for non-editors
+                        document.querySelectorAll('.register-btn').forEach(btn => {
+                            btn.style.display = isEditor ? 'none' : 'block';
+                        });
+                        
+                        // Load registrations data
+                        loadRegistrations();
+                    });
+            } else {
+                // Hide registration buttons when logged out
+                document.querySelectorAll('.register-btn').forEach(btn => {
+                    btn.style.display = 'none';
+                });
+            }
+        }
+
+        // Add click handler for registrations link
+        document.querySelector('a[href="#registrations"]').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = 'registrations.html';
+        });
+
+        // Update the click handler for the registrations link
+        document.addEventListener('DOMContentLoaded', function() {
+            const registrationsLink = document.querySelector('a[href="#registrations"]');
+            if (registrationsLink) {
+                registrationsLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Hide all sections
+                    document.querySelectorAll('section').forEach(section => {
+                        section.style.display = 'none';
+                    });
+                    // Show registrations section and load data
+                    loadRegistrations();
+                });
+            }
+        });
+
+        // Add these styles to your existing style tag
+        const additionalStyles = `
+        .registrations {
+            padding: 2rem 0;
+            background-color: #f5f5f5;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 1rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #registrationsTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        #registrationsTable th,
+        #registrationsTable td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #registrationsTable th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+
+        #registrationsTable tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .download-btn {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn.excel {
+            background-color: #1d6f42;
+            color: white;
+        }
+
+        .download-btn.pdf {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .download-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .registrations-controls {
+            margin-bottom: 1rem;
+            text-align: right;
+        }
+        `;
+
+        // Add the styles to the document
+        const styleElement = document.createElement('style');
+        styleElement.textContent = additionalStyles;
+        document.head.appendChild(styleElement);
+
+        // Update the saveRegistration function
+        function saveRegistration(eventData, userData) {
+            return new Promise((resolve, reject) => {
+                const user = firebase.auth().currentUser;
+                if (!user) {
+                    reject(new Error('User must be logged in to register'));
+                    return;
+                }
+
+                const registrationData = {
+                    eventName: eventData.eventName,
+                    studentName: userData.fullName,
+                    email: userData.email,
+                    phone: userData.phoneNumber,
+                    registrationDate: new Date().toISOString(),
+                    eventId: eventData.id || '',
+                    userId: user.uid
+                };
+
+                // First save to registrations node
+                database.ref('registrations').push(registrationData)
+                    .then((registrationRef) => {
+                        // Then save to event_registrations node
+                        return database.ref(`event_registrations/${eventData.id}/${registrationRef.key}`).set({
+                            userId: user.uid,
+                            registrationDate: registrationData.registrationDate
+                        });
+                    })
+                    .then(() => {
+                        console.log('Registration saved successfully');
+                        resolve(registrationData);
+                    })
+                    .catch((error) => {
+                        console.error('Error saving registration:', error);
+                        reject(error);
+                    });
+            });
+        }
+
+        // Add this function to handle event registration
+        function registerForEvent(eventId, eventName) {
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                alert('Please login to register for events');
+                return;
+            }
+
+            // Get user data
+            database.ref('users/' + user.uid).once('value')
+                .then((snapshot) => {
+                    const userData = snapshot.val();
+                    if (!userData) {
+                        throw new Error('User data not found');
+                    }
+
+                    // Create event data object
+                    const eventData = {
+                        id: eventId,
+                        eventName: eventName
+                    };
+
+                    // Save registration
+                    return saveRegistration(eventData, userData);
+                })
+                .then(() => {
+                    alert('Registration successful!');
+                    loadRegistrations(); // Reload the registrations table
+                })
+                .catch((error) => {
+                    console.error('Registration error:', error);
+                    alert('Error registering for event: ' + error.message);
+                });
+        }
+
+        // Update the loadRegistrations function to include error handling
+        function loadRegistrations() {
+            console.log('Loading registrations...');
+            
+            const registrationsData = document.getElementById('registrationsData');
+            const registrationsSection = document.getElementById('registrations');
+            
+            if (!registrationsData || !registrationsSection) {
+                console.error('Required elements not found');
+                return;
+            }
+
+            // Show loading message
+            registrationsData.innerHTML = '<tr><td colspan="5">Loading registrations...</td></tr>';
+            registrationsSection.style.display = 'block';
+
+            // Get registrations from event_registrations path
+            database.ref('event_registrations').once('value')
+                .then((snapshot) => {
+                    registrationsData.innerHTML = ''; // Clear loading message
+                    
+                    if (!snapshot.exists()) {
+                        registrationsData.innerHTML = '<tr><td colspan="5">No registrations found</td></tr>';
+                        return;
+                    }
+
+                    let registrationsFound = false;
+
+                    // Loop through each event registration
+                    snapshot.forEach((eventNode) => {
+                        const eventData = eventNode.val();
+                        
+                        // Check if we have registrations under this event
+                        if (eventData && typeof eventData === 'object') {
+                            Object.entries(eventData).forEach(([regId, data]) => {
+                                if (data && typeof data === 'object') {
+                                    registrationsFound = true;
+                                    console.log('Processing registration:', data);
+
+                                    // Create table row
+                                    const row = document.createElement('tr');
+                                    row.innerHTML = `
+                                        <td>${data.fullName || 'N/A'}</td>
+                                        <td>${data.email || 'N/A'}</td>
+                                        <td>${data.phone || 'N/A'}</td>
+                                        <td>${data.branch || 'N/A'}</td>
+                                        <td>${Array.isArray(data.performances) ? data.performances.join(', ') : 'N/A'}</td>
+                                    `;
+                                    registrationsData.appendChild(row);
+                                }
+                            });
+                        }
+                    });
+
+                    if (!registrationsFound) {
+                        registrationsData.innerHTML = '<tr><td colspan="5">No registrations found</td></tr>';
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error loading registrations:', error);
+                    registrationsData.innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+                });
+        }
+
+        // Add this function to check the data structure
+        function checkRegistrationData() {
+            console.log('Checking registration data...');
+            database.ref('event_registrations/null').once('value')
+                .then(snapshot => {
+                    const data = snapshot.val();
+                    console.log('Registration data:', data);
+                    
+                    if (data) {
+                        Object.entries(data).forEach(([key, value]) => {
+                            console.log(`Registration ${key}:`, value);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking data:', error);
+                });
+        }
+
+        // Update the click handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const registrationsLink = document.querySelector('a[href="#registrations"]');
+            if (registrationsLink) {
+                registrationsLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Registrations link clicked');
+                    
+                    // Hide all sections
+                    document.querySelectorAll('section').forEach(section => {
+                        section.style.display = 'none';
+                    });
+                    
+                    // Show registrations section
+                    const registrationsSection = document.getElementById('registrations');
+                    if (registrationsSection) {
+                        registrationsSection.style.display = 'block';
+                    }
+                    loadRegistrations();
+                });
+            }
+        });
+
+        // Update the existing event buttons in your HTML
+        document.querySelectorAll('.event .btn').forEach(button => {
+            const eventName = button.closest('.event').querySelector('h3').textContent;
+            const eventId = button.closest('.event').dataset.eventId || 'event-' + Date.now();
+            
+            button.onclick = () => handleEventRegistration(eventId, eventName);
+        });
+
+        // Add this to your updateUIOnAuth function
+        function updateUIOnAuth(user) {
+            console.log('Updating UI for user:', user?.uid); // Debug log
+            
+            if (user) {
+                database.ref('users/' + user.uid).once('value')
+                    .then((snapshot) => {
+                        const userData = snapshot.val();
+                        const isEditor = userData && userData.isEditor === true;
+                        
+                        // Show/hide elements based on auth status
+                        document.querySelectorAll('.auth-required').forEach(el => {
+                            el.style.display = 'block';
+                        });
+                        
+                        // Show/hide download buttons based on editor status
+                        const downloadButtons = document.getElementById('downloadButtons');
+                        if (downloadButtons) {
+                            downloadButtons.style.display = isEditor ? 'block' : 'none';
+                        }
+                        
+                        // Show registration buttons for non-editors
+                        document.querySelectorAll('.register-btn').forEach(btn => {
+                            btn.style.display = isEditor ? 'none' : 'block';
+                        });
+                        
+                        // Update welcome message
+                        const studentName = document.getElementById('studentName');
+                        if (studentName) {
+                            studentName.textContent = userData.fullName || 'Student';
+                        }
+                        
+                        // Show dashboard
+                        const dashboardSection = document.getElementById('dashboard');
+                        if (dashboardSection) {
+                            dashboardSection.style.display = 'block';
+                        }
+                        
+                        // Load registrations
+                        loadRegistrations();
+                    });
+            } else {
+                // Hide auth-required elements when logged out
+                document.querySelectorAll('.auth-required').forEach(el => {
+                    el.style.display = 'none';
+                });
+                
+                // Hide registration buttons
+                document.querySelectorAll('.register-btn').forEach(btn => {
+                    btn.style.display = 'none';
+                });
+            }
+        }
+
+        // Update your existing events in the HTML to include data-event-id
+        document.addEventListener('DOMContentLoaded', () => {
+            const events = document.querySelectorAll('.event');
+            events.forEach((event, index) => {
+                event.dataset.eventId = 'event-' + (index + 1);
+            });
+        });
+
+        // Add this code right after your Firebase initialization
+
+        // Add event listeners for register buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers to all register buttons
+            const registerButtons = document.querySelectorAll('.register-btn');
+            registerButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const eventDiv = this.closest('.event');
+                    const eventName = eventDiv.querySelector('h3').textContent;
+                    const eventId = eventDiv.dataset.eventId;
+                    handleEventRegistration(eventId, eventName);
+                });
+            });
+        });
+
+        // Update handleEventRegistration function
+        function handleEventRegistration(eventId, eventName) {
+            console.log('handleEventRegistration called with:', { eventId, eventName }); // Debug log
+            
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                alert('Please login to register for events');
+                return;
+            }
+
+            try {
+                if (!eventId) {
+                    console.error('Event ID is missing');
+                    alert('Error: Event ID is missing');
+                    return;
+                }
+
+                // Create registration URL with proper encoding
+                const registrationUrl = `r1.html?eventId=${encodeURIComponent(eventId)}&eventName=${encodeURIComponent(eventName)}`;
+                console.log('Redirecting to:', registrationUrl); // Debug log
+                
+                // Redirect to registration page
+                window.location.href = registrationUrl;
+            } catch (error) {
+                console.error('Error in handleEventRegistration:', error);
+                alert('Error processing registration. Please try again.');
+            }
+        }
+
+        // Add these styles to your existing CSS
+        const styles = `
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .registration-form {
+            padding: 20px 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .submit-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .submit-btn:hover {
+            background: #45a049;
+        }
+
+        .close-btn {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+        `;
+
+        // Add styles to document
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = styles;
+        document.head.appendChild(styleSheet);
+
+        // Add this function to your existing JavaScript
+        function showRegistrationForm() {
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                alert('Please login first to register for events');
+                return;
+            }
+
+            const modal = document.getElementById('registrationModal');
+            if (modal) {
+                modal.style.display = 'block';
+                
+                // Pre-fill form with user data
+                database.ref('users/' + user.uid).once('value')
+                    .then((snapshot) => {
+                        const userData = snapshot.val();
+                        if (userData) {
+                            document.getElementById('regName').value = userData.fullName || '';
+                            document.getElementById('regEmail').value = userData.email || '';
+                            document.getElementById('regPhone').value = userData.phoneNumber || '';
+                        }
+                    });
+            }
+        }
+
+        // Update the window click handler to close modal
+        window.onclick = function(event) {
+            const modal = document.getElementById('registrationModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        // Check if user is logged in
+        function checkLoginStatus() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const upcomingEventsLink = document.getElementById('upcoming-events-link');
+            
+            if (isLoggedIn === 'true') {
+                upcomingEventsLink.style.display = 'block';
+            } else {
+                upcomingEventsLink.style.display = 'none';
+            }
+        }
+
+        // Page load होने पर check करें
+        window.onload = function() {
+            checkLoginStatus();
+        }
+
+        // Add a function to migrate old user data if needed
+        function migrateUserData(userId, email) {
+            return database.ref('users/' + userId).once('value')
+                .then((snapshot) => {
+                    if (!snapshot.exists()) {
+                        // Create basic user data for old accounts
+                        const basicData = {
+                            email: email,
+                            fullName: email.split('@')[0],
+                            createdAt: firebase.database.ServerValue.TIMESTAMP,
+                            migrated: true
+                        };
+                        return database.ref('users/' + userId).set(basicData);
+                    }
+                    return Promise.resolve();
+                });
+        }
+
+        // Add this to your auth state observer
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                // Migrate user data if needed
+                migrateUserData(user.uid, user.email)
+                    .then(() => {
+                        console.log('User data migration checked/completed');
+                        updateUIOnAuth(user);
+                    })
+                    .catch(error => {
+                        console.error('Error in data migration:', error);
+                    });
+            } else {
+                updateUIOnAuth(null);
+            }
+        });
+
+        // Update loadUpcomingEvents function
+        function loadUpcomingEvents() {
+            console.log('Starting to load upcoming events...'); // Debug log
+            
+            const eventsList = document.getElementById('upcomingEventsList');
+            if (!eventsList) {
+                console.error('upcomingEventsList element not found');
+                return;
+            }
+
+            eventsList.innerHTML = '<div class="event-card">Loading events...</div>';
+            
+            // Reference to upcoming_events in Firebase
+            const upcomingEventsRef = firebase.database().ref('upcoming_events');
+            
+            upcomingEventsRef.on('value', (snapshot) => {
+                console.log('Firebase data received:', snapshot.val()); // Debug log
+                eventsList.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    eventsList.innerHTML = '<div class="event-card">No upcoming events available.</div>';
+                    return;
+                }
+
+                snapshot.forEach((childSnapshot) => {
+                    const event = childSnapshot.val();
+                    const eventId = childSnapshot.key;
+                    
+                    console.log('Processing event:', { eventId, eventName: event.eventName }); // Debug log
+
+                    const eventCard = document.createElement('div');
+                    eventCard.className = 'event-card';
+                    
+                    // Format date
+                    let eventDate = event.eventDate ? new Date(event.eventDate).toLocaleDateString() : 'Date not set';
+
+                    // Create event card HTML
+                    eventCard.innerHTML = `
+                        <h3>${event.eventName || 'Unnamed Event'}</h3>
+                        <div class="event-details">
+                            <p class="event-date">
+                                <i class="fas fa-calendar"></i> ${eventDate}
+                            </p>
+                            <p class="event-location">
+                                <i class="fas fa-map-marker-alt"></i> 
+                                ${event.eventVenue || 'Location TBA'}
+                            </p>
+                            ${event.guestOfHonor ? `
+                                <p class="event-guest">
+                                    <i class="fas fa-user-tie"></i> 
+                                    Guest: ${event.guestOfHonor}
+                                </p>
+                            ` : ''}
+                            ${event.eventDescription ? `
+                                <p class="event-description">
+                                    <i class="fas fa-info-circle"></i> 
+                                    ${event.eventDescription}
+                                </p>
+                            ` : ''}
+                        </div>
+                        <div class="event-actions">
+                            <button class="register-btn" onclick="handleEventRegistration('${eventId}', '${event.eventName?.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-user-plus"></i> Register Now
+                            </button>
+                            <button class="delete-btn editor-only" onclick="deleteEvent('${eventId}')" style="display: none;">
+                                <i class="fas fa-trash"></i> Delete Event
+                            </button>
+                        </div>
+                    `;
+
+                    eventsList.appendChild(eventCard);
+                    console.log('Added event card for:', eventId); // Debug log
+                });
+            });
+        }
+
+        // Add these new functions after your existing JavaScript code
+        function deleteEvent(eventId) {
+            if (!confirm('Are you sure you want to delete this event?')) {
+                return;
+            }
+
+            const user = firebase.auth().currentUser;
+            if (!user || user.email !== 'Zenthuser207@gmail.com') {
+                alert('You do not have permission to delete events');
+                return;
+            }
+
+            firebase.database().ref('upcoming_events/' + eventId).remove()
+                .then(() => {
+                    alert('Event deleted successfully');
+                })
+                .catch((error) => {
+                    console.error('Error deleting event:', error);
+                    alert('Error deleting event: ' + error.message);
+                });
+        }
+
+        // Update the updateUIOnAuth function to show/hide delete buttons
+        function updateUIOnAuth(user) {
+            console.log('Updating UI for user:', user?.uid);
+            
+            const isEditor = user && user.email === 'Zenthuser207@gmail.com';
+            
+            // Show/hide delete buttons based on editor status
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.style.display = isEditor ? 'block' : 'none';
+            });
+
+            // ... rest of your existing updateUIOnAuth code ...
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>

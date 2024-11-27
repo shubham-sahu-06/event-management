@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Email OTP</title>
+    <style>
+        .modal { display: none; }
+    </style>
+</head>
+<body>
+    <button id="showModal">Show Modal</button>
+
+    <div id="modal" class="modal">
+        <h2>Email OTP Login</h2>
+        <input type="email" id="email" placeholder="Enter email">
+        <button id="sendOtp">Send OTP</button>
+        <div id="otpSection" style="display:none;">
+            <input type="text" id="otp" placeholder="Enter OTP">
+            <button id="verifyOtp">Verify OTP</button>
+        </div>
+    </div>
+
+    <script>
+        console.log('Script loaded');
+
+        document.getElementById('showModal').addEventListener('click', function() {
+            console.log('Show modal clicked');
+            document.getElementById('modal').style.display = 'block';
+        });
+
+        document.getElementById('sendOtp').addEventListener('click', function() {
+            console.log('Send OTP clicked');
+            const otp = Math.floor(100000 + Math.random() * 900000);
+            localStorage.setItem('otp', otp.toString());
+            alert('OTP: ' + otp);
+            document.getElementById('otpSection').style.display = 'block';
+        });
+
+        document.getElementById('verifyOtp').addEventListener('click', function() {
+            console.log('Verify OTP clicked');
+            const enteredOtp = document.getElementById('otp').value;
+            const storedOtp = localStorage.getItem('otp');
+            if (enteredOtp === storedOtp) {
+                alert('OTP verified!');
+            } else {
+                alert('Invalid OTP');
+            }
+        });
+    </script>
+</body>
+</html>
